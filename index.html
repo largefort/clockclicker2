@@ -1,0 +1,370 @@
+<html><head><base href="https://websim.ai/" /></head>
+<body>
+  <div class="container">
+    <h1 class="title">Neon Clock Clicker</h1>
+    <div class="game-area">
+      <div class="clock-container">
+        <canvas id="cursorCanvas" width="450" height="450"></canvas>
+        <canvas id="clockCanvas" width="400" height="400"></canvas>
+      </div>
+      <div id="stats">
+        <p>Ticks: <span id="ticks">0</span></p>
+        <p>Clicks: <span id="clicks">0</span></p>
+        <p>Tick Rate: <span id="tickRate">1</span>/s</p>
+        <p>Cursors: <span id="cursors">0</span></p>
+        <p>CPS: <span id="cps">0</span></p>
+      </div>
+    </div>
+    <div class="controls">
+      <button id="clickButton" class="neon-button">Click the Clock</button>
+      <button id="upgradeButton" class="neon-button">Upgrade Tick Rate (<span id="upgradeCost">10</span> clicks)</button>
+      <button id="buyCursorButton" class="neon-button">Buy Cursor (<span id="cursorCost">50</span> clicks)</button>
+    </div>
+  </div>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Orbitron', sans-serif;
+      background-color: #000;
+      color: #0ff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .container {
+      text-align: center;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 2rem;
+      border-radius: 20px;
+      box-shadow: 0 0 20px #0ff, 0 0 40px #0ff, 0 0 60px #0ff;
+    }
+
+    .title {
+      font-size: 3rem;
+      margin-bottom: 2rem;
+      text-shadow: 0 0 10px #0ff, 0 0 20px #0ff, 0 0 30px #0ff;
+    }
+
+    .game-area {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .clock-container {
+      position: relative;
+      width: 450px;
+      height: 450px;
+    }
+
+    #cursorCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    #clockCanvas {
+      position: absolute;
+      top: 25px;
+      left: 25px;
+      border: 2px solid #0ff;
+      border-radius: 50%;
+      box-shadow: 0 0 20px #0ff, inset 0 0 20px #0ff;
+      cursor: pointer;
+    }
+
+    #stats {
+      font-size: 1.2rem;
+      text-align: left;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    .neon-button {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+      padding: 0.8rem 1.5rem;
+      cursor: pointer;
+      background-color: transparent;
+      color: #0ff;
+      border: 2px solid #0ff;
+      border-radius: 5px;
+      transition: all 0.3s ease;
+      text-shadow: 0 0 5px #0ff;
+      box-shadow: 0 0 10px #0ff, inset 0 0 10px #0ff;
+    }
+
+    .neon-button:hover {
+      background-color: #0ff;
+      color: #000;
+      text-shadow: none;
+    }
+
+    @keyframes neon-glow {
+      0% {
+        box-shadow: 0 0 5px #0ff, 0 0 10px #0ff, 0 0 15px #0ff, 0 0 20px #0ff;
+      }
+      100% {
+        box-shadow: 0 0 10px #0ff, 0 0 20px #0ff, 0 0 30px #0ff, 0 0 40px #0ff;
+      }
+    }
+  </style>
+
+  <script>
+    let ticks = parseFloat(localStorage.getItem('ticks')) || 0;
+    let clicks = parseFloat(localStorage.getItem('clicks')) || 0;
+    let tickRate = parseInt(localStorage.getItem('tickRate')) || 1;
+    let upgradeCost = parseInt(localStorage.getItem('upgradeCost')) || 10;
+    let cursors = parseInt(localStorage.getItem('cursors')) || 0;
+    let cursorCost = parseInt(localStorage.getItem('cursorCost')) || 50;
+    let cps = cursors; // Clicks per second from cursors
+
+    const clockCanvas = document.getElementById('clockCanvas');
+    const clockCtx = clockCanvas.getContext('2d');
+    const cursorCanvas = document.getElementById('cursorCanvas');
+    const cursorCtx = cursorCanvas.getContext('2d');
+    const clockCenterX = clockCanvas.width / 2;
+    const clockCenterY = clockCanvas.height / 2;
+    const clockRadius = clockCanvas.width / 2 - 20;
+
+    const clickAnimations = [];
+    let cursorAnimations = JSON.parse(localStorage.getItem('cursorAnimations')) || [];
+
+    // Initialize cursor animations if not loaded from localStorage
+    if (cursorAnimations.length === 0) {
+      for (let i = 0; i < cursors; i++) {
+        cursorAnimations.push({ angle: Math.random() * Math.PI * 2 });
+      }
+    }
+
+    function drawClock() {
+      clockCtx.clearRect(0, 0, clockCanvas.width, clockCanvas.height);
+
+      // Draw clock face
+      clockCtx.beginPath();
+      clockCtx.arc(clockCenterX, clockCenterY, clockRadius, 0, 2 * Math.PI);
+      clockCtx.fillStyle = 'rgba(0, 255, 255, 0.1)';
+      clockCtx.fill();
+      clockCtx.strokeStyle = '#0ff';
+      clockCtx.lineWidth = 4;
+      clockCtx.stroke();
+
+      // Draw hour markers and numbers
+      for (let i = 1; i <= 12; i++) {
+        const angle = (i * Math.PI) / 6 - Math.PI / 2;
+        const x1 = clockCenterX + (clockRadius - 20) * Math.cos(angle);
+        const y1 = clockCenterY + (clockRadius - 20) * Math.sin(angle);
+        const x2 = clockCenterX + clockRadius * Math.cos(angle);
+        const y2 = clockCenterY + clockRadius * Math.sin(angle);
+
+        clockCtx.beginPath();
+        clockCtx.moveTo(x1, y1);
+        clockCtx.lineTo(x2, y2);
+        clockCtx.strokeStyle = '#0ff';
+        clockCtx.lineWidth = 2;
+        clockCtx.stroke();
+
+        clockCtx.font = '20px Orbitron';
+        clockCtx.fillStyle = '#0ff';
+        clockCtx.textAlign = 'center';
+        clockCtx.textBaseline = 'middle';
+        const numberX = clockCenterX + (clockRadius - 40) * Math.cos(angle);
+        const numberY = clockCenterY + (clockRadius - 40) * Math.sin(angle);
+        clockCtx.fillText(i.toString(), numberX, numberY);
+      }
+
+      // Calculate hand angles
+      const now = new Date();
+      const hours = now.getHours() % 12;
+      const minutes = now.getMinutes();
+      const seconds = now.getSeconds();
+
+      const hourAngle = (hours + minutes / 60) * (Math.PI / 6) - Math.PI / 2;
+      const minuteAngle = (minutes + seconds / 60) * (Math.PI / 30) - Math.PI / 2;
+      const secondAngle = seconds * (Math.PI / 30) - Math.PI / 2;
+
+      // Draw hour hand
+      drawHand(hourAngle, clockRadius * 0.5, 8, '#0ff');
+
+      // Draw minute hand
+      drawHand(minuteAngle, clockRadius * 0.7, 6, '#0fa');
+
+      // Draw second hand
+      drawHand(secondAngle, clockRadius * 0.9, 4, '#f0f');
+
+      // Draw center circle
+      clockCtx.beginPath();
+      clockCtx.arc(clockCenterX, clockCenterY, 8, 0, 2 * Math.PI);
+      clockCtx.fillStyle = '#0ff';
+      clockCtx.fill();
+
+      // Draw click animations
+      clickAnimations.forEach((anim, index) => {
+        clockCtx.font = `${anim.size}px Orbitron`;
+        clockCtx.fillStyle = `rgba(0, 255, 255, ${anim.opacity})`;
+        clockCtx.fillText(`+${anim.value}`, anim.x, anim.y);
+
+        anim.y -= 2;
+        anim.opacity -= 0.02;
+        anim.size += 0.5;
+
+        if (anim.opacity <= 0) {
+          clickAnimations.splice(index, 1);
+        }
+      });
+    }
+
+    function drawHand(angle, length, width, color) {
+      clockCtx.beginPath();
+      clockCtx.moveTo(clockCenterX, clockCenterY);
+      clockCtx.lineTo(
+        clockCenterX + length * Math.cos(angle),
+        clockCenterY + length * Math.sin(angle)
+      );
+      clockCtx.strokeStyle = color;
+      clockCtx.lineWidth = width;
+      clockCtx.lineCap = 'round';
+      clockCtx.shadowColor = color;
+      clockCtx.shadowBlur = 10;
+      clockCtx.stroke();
+      clockCtx.shadowBlur = 0;
+    }
+
+    function drawCursors() {
+      cursorCtx.clearRect(0, 0, cursorCanvas.width, cursorCanvas.height);
+
+      cursorAnimations.forEach((cursor, index) => {
+        const x = cursorCanvas.width / 2 + Math.cos(cursor.angle) * 225;
+        const y = cursorCanvas.height / 2 + Math.sin(cursor.angle) * 225;
+
+        cursorCtx.save();
+        cursorCtx.translate(x, y);
+        cursorCtx.rotate(cursor.angle + Math.PI / 4);
+
+        cursorCtx.fillStyle = '#0ff';
+        cursorCtx.beginPath();
+        cursorCtx.moveTo(0, 0);
+        cursorCtx.lineTo(0, 15);
+        cursorCtx.lineTo(10, 10);
+        cursorCtx.closePath();
+        cursorCtx.fill();
+
+        cursorCtx.restore();
+
+        cursor.angle += 0.02;
+
+        // Cursor click animation
+        if (Math.random() < 0.05) { // 5% chance each frame
+          clickAnimations.push({
+            x: x - 25,
+            y: y - 25,
+            opacity: 1,
+            size: 16,
+            value: 1
+          });
+          clicks++;
+          ticks++;
+        }
+      });
+
+      // Save cursor animations to localStorage
+      localStorage.setItem('cursorAnimations', JSON.stringify(cursorAnimations));
+    }
+
+    function updateStats() {
+      document.getElementById('ticks').textContent = Math.floor(ticks);
+      document.getElementById('clicks').textContent = Math.floor(clicks);
+      document.getElementById('tickRate').textContent = tickRate;
+      document.getElementById('upgradeCost').textContent = upgradeCost;
+      document.getElementById('cursors').textContent = cursors;
+      document.getElementById('cursorCost').textContent = cursorCost;
+      document.getElementById('cps').textContent = cps.toFixed(1);
+
+      localStorage.setItem('ticks', ticks);
+      localStorage.setItem('clicks', clicks);
+      localStorage.setItem('tickRate', tickRate);
+      localStorage.setItem('upgradeCost', upgradeCost);
+      localStorage.setItem('cursors', cursors);
+      localStorage.setItem('cursorCost', cursorCost);
+    }
+
+    function incrementTicks() {
+      ticks += tickRate;
+      clicks += cps / 10; // Divide by 10 because this function runs 10 times per second
+      updateStats();
+    }
+
+    clockCanvas.addEventListener('click', (event) => {
+      const rect = clockCanvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+
+      clicks++;
+      ticks += tickRate;
+      updateStats();
+
+      clickAnimations.push({
+        x: x,
+        y: y,
+        opacity: 1,
+        size: 24,
+        value: tickRate
+      });
+    });
+
+    document.getElementById('clickButton').addEventListener('click', () => {
+      clicks++;
+      ticks += tickRate;
+      updateStats();
+    });
+
+    document.getElementById('upgradeButton').addEventListener('click', () => {
+      if (clicks >= upgradeCost) {
+        clicks -= upgradeCost;
+        tickRate++;
+        upgradeCost = Math.floor(upgradeCost * 1.5);
+        updateStats();
+      }
+    });
+
+    document.getElementById('buyCursorButton').addEventListener('click', () => {
+      if (clicks >= cursorCost) {
+        clicks -= cursorCost;
+        cursors++;
+        cps = cursors;
+        cursorCost = Math.floor(cursorCost * 1.2);
+        cursorAnimations.push({ angle: Math.random() * Math.PI * 2 });
+        updateStats();
+      }
+    });
+
+    setInterval(incrementTicks, 100); // Run 10 times per second for smoother updates
+    setInterval(() => {
+      drawClock();
+      drawCursors();
+    }, 1000 / 60); // 60 FPS
+
+    drawClock();
+    drawCursors();
+    updateStats();
+
+    // Add neon glow animation to buttons
+    const buttons = document.querySelectorAll('.neon-button');
+    buttons.forEach(button => {
+      button.style.animation = 'neon-glow 1.5s ease-in-out infinite alternate';
+    });
+  </script>
+</body>
+</html>
