@@ -1,24 +1,27 @@
 <html><head><base href="https://websim.ai/" /></head>
 <body>
   <div class="container">
-    <h1 class="title">Neon Clock Clicker</h1>
-    <div class="game-area">
-      <div class="clock-container">
-        <canvas id="cursorCanvas" width="450" height="450"></canvas>
-        <canvas id="clockCanvas" width="400" height="400"></canvas>
-      </div>
-      <div id="stats">
-        <p>Ticks: <span id="ticks">0</span></p>
-        <p>Clicks: <span id="clicks">0</span></p>
-        <p>Tick Rate: <span id="tickRate">1</span>/s</p>
-        <p>Cursors: <span id="cursors">0</span></p>
-        <p>CPS: <span id="cps">0</span></p>
-      </div>
-    </div>
-    <div class="controls">
+    <div class="sidebar">
+      <h2 class="sidebar-title">Controls</h2>
       <button id="clickButton" class="neon-button">Click the Clock</button>
       <button id="upgradeButton" class="neon-button">Upgrade Tick Rate (<span id="upgradeCost">10</span> clicks)</button>
       <button id="buyCursorButton" class="neon-button">Buy Cursor (<span id="cursorCost">50</span> clicks)</button>
+    </div>
+    <div class="main-content">
+      <h1 class="title">Neon Clock Clicker</h1>
+      <div class="game-area">
+        <div class="clock-container">
+          <canvas id="cursorCanvas" width="450" height="450"></canvas>
+          <canvas id="clockCanvas" width="400" height="400"></canvas>
+        </div>
+        <div id="stats">
+          <p>Ticks: <span id="ticks">0</span></p>
+          <p>Clicks: <span id="clicks">0</span></p>
+          <p>Tick Rate: <span id="tickRate">1</span>/s</p>
+          <p>Cursors: <span id="cursors">0</span></p>
+          <p>CPS: <span id="cps">0</span></p>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -39,11 +42,34 @@
     }
 
     .container {
-      text-align: center;
+      display: flex;
       background: rgba(0, 0, 0, 0.7);
-      padding: 2rem;
       border-radius: 20px;
       box-shadow: 0 0 20px #0ff, 0 0 40px #0ff, 0 0 60px #0ff;
+    }
+
+    .sidebar {
+      width: 250px;
+      padding: 2rem;
+      background: rgba(0, 255, 255, 0.1);
+      border-right: 2px solid #0ff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 1rem;
+      box-shadow: inset 0 0 20px #0ff;
+    }
+
+    .sidebar-title {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      text-shadow: 0 0 10px #0ff;
+    }
+
+    .main-content {
+      padding: 2rem;
+      text-align: center;
     }
 
     .title {
@@ -86,12 +112,6 @@
       text-align: left;
     }
 
-    .controls {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-    }
-
     .neon-button {
       font-family: 'Orbitron', sans-serif;
       font-size: 1rem;
@@ -104,6 +124,7 @@
       transition: all 0.3s ease;
       text-shadow: 0 0 5px #0ff;
       box-shadow: 0 0 10px #0ff, inset 0 0 10px #0ff;
+      width: 100%;
     }
 
     .neon-button:hover {
