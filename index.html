@@ -1,32 +1,120 @@
-<html><head><base href="https://websim.ai/" /></head>
+<html><head><base href="https://websim.ai/" /><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"></head>
 <body>
+  <div id="settingsGear" class="settings-gear">⚙️</div>
+  
   <div class="container">
     <div class="sidebar">
       <h2 class="sidebar-title">Controls</h2>
-      <button id="clickButton" class="neon-button">Click the Clock</button>
-      <button id="upgradeButton" class="neon-button">Upgrade Tick Rate (<span id="upgradeCost">10</span> clicks)</button>
-      <button id="buyCursorButton" class="neon-button">Buy Cursor (<span id="cursorCost">50</span> clicks)</button>
+      <div class="sidebar-content">
+        <button id="clickButton" class="neon-button">Click the Clock</button>
+        <button id="upgradeButton" class="neon-button">Upgrade Tick Rate (<span id="upgradeCost">10</span>)</button>
+        <button id="buyCursorButton" class="neon-button">Buy Cursor (<span id="cursorCost">50</span>)</button>
+        <button id="upgradeCursorButton" class="neon-button">Upgrade Cursors (<span id="cursorUpgradeCost">100</span>)</button>
+        <button id="buyAutoClickerButton" class="neon-button">Buy Auto-Clicker (<span id="autoClickerCost">500</span>)</button>
+        <button id="buyTimeDilatorButton" class="neon-button">Buy Time Dilator (<span id="timeDilatorCost">1K</span>)</button>
+        <button id="buyTimeWarpButton" class="neon-button">Buy Time Warp (<span id="timeWarpCost">5K</span>)</button>
+        <button id="showAchievementsButton" class="neon-button">Achievements</button>
+        <button id="showLeaderboardButton" class="neon-button">Leaderboard</button>
+        <button id="showMultiplayerButton" class="neon-button">Multiplayer</button>
+      </div>
     </div>
     <div class="main-content">
-      <h1 class="title">Neon Clock Clicker</h1>
       <div class="game-area">
         <div class="clock-container">
-          <canvas id="cursorCanvas" width="450" height="450"></canvas>
-          <canvas id="clockCanvas" width="400" height="400"></canvas>
+          <canvas id="particleCanvas"></canvas>
+          <canvas id="cursorCanvas"></canvas>
+          <canvas id="clockCanvas"></canvas>
         </div>
         <div id="stats">
           <p>Ticks: <span id="ticks">0</span></p>
           <p>Clicks: <span id="clicks">0</span></p>
           <p>Tick Rate: <span id="tickRate">1</span>/s</p>
           <p>Cursors: <span id="cursors">0</span></p>
+          <p>Cursor Power: <span id="cursorPower">1</span></p>
           <p>CPS: <span id="cps">0</span></p>
+          <p>Auto-Clickers: <span id="autoClickers">0</span></p>
+          <p>Time Dilators: <span id="timeDilators">0</span></p>
+          <p>Time Warps: <span id="timeWarps">0</span></p>
         </div>
       </div>
     </div>
   </div>
 
+  <div id="achievementPopup" class="achievement-popup">
+    <h3>Achievement Unlocked!</h3>
+    <p id="achievementName"></p>
+  </div>
+
+  <div id="achievementsModal" class="modal">
+    <div class="modal-content">
+      <h2>Achievements</h2>
+      <div id="achievementsList"></div>
+      <button id="closeAchievements" class="neon-button">Close</button>
+    </div>
+  </div>
+
+  <div id="leaderboardModal" class="modal">
+    <div class="modal-content">
+      <h2>Leaderboard</h2>
+      <div id="leaderboardList"></div>
+      <input type="text" id="playerName" placeholder="Enter your name">
+      <button id="submitScore" class="neon-button">Submit Score</button>
+      <button id="closeLeaderboard" class="neon-button">Close</button>
+    </div>
+  </div>
+
+  <div id="settingsModal" class="modal">
+    <div class="modal-content">
+      <h2>Settings</h2>
+      <div>
+        <label for="particleEffect">Particle Effects:</label>
+        <input type="checkbox" id="particleEffect" checked>
+      </div>
+      <div>
+        <label for="soundEffect">Sound Effects:</label>
+        <input type="checkbox" id="soundEffect" checked>
+      </div>
+      <div>
+        <label for="bgMusic">Background Music:</label>
+        <input type="checkbox" id="bgMusic" checked>
+      </div>
+      <div>
+        <label for="autoSave">Auto Save (every 30 seconds):</label>
+        <input type="checkbox" id="autoSave" checked>
+      </div>
+      <button id="resetGameButton" class="neon-button">Reset Game</button>
+      <button id="closeSettings" class="neon-button">Close</button>
+    </div>
+  </div>
+
+  <div id="multiplayerModal" class="modal">
+    <div class="modal-content">
+      <h2>Multiplayer</h2>
+      <div id="multiplayerContent">
+        <input type="text" id="username" placeholder="Enter username">
+        <input type="password" id="password" placeholder="Enter password">
+        <button id="registerButton" class="neon-button">Register</button>
+        <button id="loginButton" class="neon-button">Login</button>
+      </div>
+      <div id="serverSelection" style="display: none;">
+        <h3>Select a Server</h3>
+        <select id="serverList">
+          <option value="server1">Server 1</option>
+          <option value="server2">Server 2</option>
+          <option value="server3">Server 3</option>
+        </select>
+        <button id="joinServerButton" class="neon-button">Join Server</button>
+      </div>
+      <button id="closeMultiplayer" class="neon-button">Close</button>
+    </div>
+  </div>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
@@ -43,22 +131,31 @@
 
     .container {
       display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 1200px;
       background: rgba(0, 0, 0, 0.7);
       border-radius: 20px;
       box-shadow: 0 0 20px #0ff, 0 0 40px #0ff, 0 0 60px #0ff;
     }
 
     .sidebar {
-      width: 250px;
-      padding: 2rem;
+      width: 100%;
+      padding: 1rem;
       background: rgba(0, 255, 255, 0.1);
-      border-right: 2px solid #0ff;
+      border-bottom: 2px solid #0ff;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
       gap: 1rem;
       box-shadow: inset 0 0 20px #0ff;
+    }
+
+    .sidebar-content {
+      max-height: 400px;
+      overflow-y: auto;
+      width: 100%;
     }
 
     .sidebar-title {
@@ -68,47 +165,43 @@
     }
 
     .main-content {
-      padding: 2rem;
+      padding: 1rem;
       text-align: center;
-    }
-
-    .title {
-      font-size: 3rem;
-      margin-bottom: 2rem;
-      text-shadow: 0 0 10px #0ff, 0 0 20px #0ff, 0 0 30px #0ff;
     }
 
     .game-area {
       display: flex;
-      justify-content: space-around;
+      flex-direction: column;
       align-items: center;
-      margin-bottom: 2rem;
+      gap: 1rem;
+      border-width: 0;
     }
 
     .clock-container {
       position: relative;
-      width: 450px;
-      height: 450px;
+      width: 100%;
+      max-width: 450px;
+      aspect-ratio: 1 / 1;
     }
 
-    #cursorCanvas {
+    #particleCanvas, #cursorCanvas, #clockCanvas {
       position: absolute;
       top: 0;
       left: 0;
+      width: 100%;
+      height: 100%;
     }
 
     #clockCanvas {
-      position: absolute;
-      top: 25px;
-      left: 25px;
       border: 2px solid #0ff;
-      border-radius: 50%;
+      border-width: 0;
+      border-radius: 100%;
       box-shadow: 0 0 20px #0ff, inset 0 0 20px #0ff;
       cursor: pointer;
     }
 
     #stats {
-      font-size: 1.2rem;
+      font-size: 1rem;
       text-align: left;
     }
 
@@ -125,12 +218,93 @@
       text-shadow: 0 0 5px #0ff;
       box-shadow: 0 0 10px #0ff, inset 0 0 10px #0ff;
       width: 100%;
+      margin-bottom: 0.5rem;
     }
 
-    .neon-button:hover {
+    .neon-button:hover, .neon-button:active {
       background-color: #0ff;
       color: #000;
       text-shadow: none;
+    }
+
+    .achievement-popup {
+      position: fixed;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(0, 255, 255, 0.2);
+      border: 2px solid #0ff;
+      border-radius: 10px;
+      padding: 1rem;
+      text-align: center;
+      transition: top 0.5s ease-in-out;
+      z-index: 1000;
+    }
+
+    .achievement-popup.show {
+      top: 20px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1001;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.8);
+    }
+
+    .modal-content {
+      background-color: rgba(0, 255, 255, 0.1);
+      margin: 10% auto;
+      padding: 20px;
+      border: 2px solid #0ff;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 600px;
+      box-shadow: 0 0 20px #0ff;
+    }
+
+    #achievementsList, #leaderboardList {
+      margin-bottom: 1rem;
+      text-align: left;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    #playerName, #username, #password {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      background-color: rgba(0, 255, 255, 0.1);
+      border: 2px solid #0ff;
+      border-radius: 5px;
+      color: #0ff;
+      width: 100%;
+    }
+
+    #serverList {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      background-color: rgba(0, 255, 255, 0.1);
+      border: 2px solid #0ff;
+      border-radius: 5px;
+      color: #0ff;
+      width: 100%;
+    }
+
+    .settings-gear {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      font-size: 2rem;
+      cursor: pointer;
+      z-index: 1002;
     }
 
     @keyframes neon-glow {
@@ -139,6 +313,36 @@
       }
       100% {
         box-shadow: 0 0 10px #0ff, 0 0 20px #0ff, 0 0 30px #0ff, 0 0 40px #0ff;
+      }
+    }
+
+    @media (min-width: 768px) {
+      .container {
+        flex-direction: row;
+      }
+
+      .sidebar {
+        width: 250px;
+        height: 100%;
+        border-right: 2px solid #0ff;
+        border-bottom: none;
+      }
+
+      .main-content {
+        flex: 1;
+      }
+
+      .title {
+        font-size: 3rem;
+      }
+
+      .game-area {
+        flex-direction: row;
+        justify-content: space-around;
+      }
+
+      #stats {
+        font-size: 1.2rem;
       }
     }
   </style>
@@ -150,23 +354,97 @@
     let upgradeCost = parseInt(localStorage.getItem('upgradeCost')) || 10;
     let cursors = parseInt(localStorage.getItem('cursors')) || 0;
     let cursorCost = parseInt(localStorage.getItem('cursorCost')) || 50;
-    let cps = cursors; // Clicks per second from cursors
+    let cursorPower = parseInt(localStorage.getItem('cursorPower')) || 1;
+    let cursorUpgradeCost = parseInt(localStorage.getItem('cursorUpgradeCost')) || 100;
+    let autoClickers = parseInt(localStorage.getItem('autoClickers')) || 0;
+    let autoClickerCost = parseInt(localStorage.getItem('autoClickerCost')) || 500;
+    let timeDilators = parseInt(localStorage.getItem('timeDilators')) || 0;
+    let timeDilatorCost = parseInt(localStorage.getItem('timeDilatorCost')) || 1000;
+    let timeWarps = parseInt(localStorage.getItem('timeWarps')) || 0;
+    let timeWarpCost = parseInt(localStorage.getItem('timeWarpCost')) || 5000;
+    let cps = cursors * cursorPower + autoClickers;
 
     const clockCanvas = document.getElementById('clockCanvas');
     const clockCtx = clockCanvas.getContext('2d');
     const cursorCanvas = document.getElementById('cursorCanvas');
     const cursorCtx = cursorCanvas.getContext('2d');
-    const clockCenterX = clockCanvas.width / 2;
-    const clockCenterY = clockCanvas.height / 2;
-    const clockRadius = clockCanvas.width / 2 - 20;
+    const particleCanvas = document.getElementById('particleCanvas');
+    const particleCtx = particleCanvas.getContext('2d');
+
+    let clockCenterX, clockCenterY, clockRadius;
 
     const clickAnimations = [];
     let cursorAnimations = JSON.parse(localStorage.getItem('cursorAnimations')) || [];
+    const particles = [];
+
+    const achievements = [
+      { name: "First Click", description: "Click the clock for the first time", condition: () => clicks >= 1, achieved: false },
+      { name: "Time Lord", description: "Reach 1,000 ticks", condition: () => ticks >= 1000, achieved: false },
+      { name: "Cursor Master", description: "Own 10 cursors", condition: () => cursors >=
+ 10, achieved: false },
+      { name: "Automation Begin", description: "Buy your first auto-clicker", condition: () => autoClickers >= 1, achieved: false },
+      { name: "Clock Conqueror", description: "Reach 1,000,000 clicks", condition: () => clicks >= 1000000, achieved: false },
+      { name: "Time Bender", description: "Buy your first time dilator", condition: () => timeDilators >= 1, achieved: false },
+      { name: "Warp Speed", description: "Buy your first time warp", condition: () => timeWarps >= 1, achieved: false },
+      { name: "Clicking Frenzy", description: "Click 100 times in 10 seconds", condition: () => false, achieved: false },
+      { name: "Cursor Army", description: "Own 100 cursors", condition: () => cursors >= 100, achieved: false },
+      { name: "Auto-Click Revolution", description: "Own 50 auto-clickers", condition: () => autoClickers >= 50, achieved: false },
+      { name: "Time Manipulator", description: "Own 10 time dilators", condition: () => timeDilators >= 10, achieved: false },
+      { name: "Warp Master", description: "Own 5 time warps", condition: () => timeWarps >= 5, achieved: false },
+      { name: "Billion Clicks", description: "Reach 1 billion clicks", condition: () => clicks >= 1000000000, achieved: false },
+      { name: "Trillion Ticks", description: "Reach 1 trillion ticks", condition: () => ticks >= 1000000000000, achieved: false },
+      { name: "Speed Demon", description: "Reach a tick rate of 1000/s", condition: () => tickRate >= 1000, achieved: false },
+      { name: "Cursor Efficiency", description: "Upgrade cursor power to 100", condition: () => cursorPower >= 100, achieved: false },
+      { name: "Time Wizard", description: "Own 100 time dilators", condition: () => timeDilators >= 100, achieved: false },
+      { name: "Warp Overdrive", description: "Own 20 time warps", condition: () => timeWarps >= 20, achieved: false },
+      { name: "Clockwork Universe", description: "Reach 1 quadrillion ticks", condition: () => ticks >= 1000000000000000, achieved: false },
+      { name: "Click Singularity", description: "Reach 1 trillion clicks per second", condition: () => cps >= 1000000000000, achieved: false },
+    ];
+
+    let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+
+    // Sound effects
+    const clickSound = new Audio('https://websim.ai/click.mp3');
+    const bgMusic = new Audio('https://websim.ai/background_music.mp3');
+    bgMusic.loop = true;
+
+    function formatNumber(num) {
+      const suffixes = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc', 'Ud', 'Dd', 'Td', 'Qad', 'Qid', 'Sxd', 'Spd', 'Ocd', 'Nod', 'V'];
+      const order = Math.floor(Math.log10(num) / 3);
+      if (order < suffixes.length) {
+        const suffix = suffixes[order];
+        const scaled = num / Math.pow(10, order * 3);
+        return scaled.toFixed(1) + suffix;
+      }
+      return num.toExponential(2);
+    }
+
+    function resizeCanvases() {
+      const container = document.querySelector('.clock-container');
+      const size = Math.min(container.clientWidth, container.clientHeight);
+      
+      clockCanvas.width = size;
+      clockCanvas.height = size;
+      cursorCanvas.width = size;
+      cursorCanvas.height = size;
+      particleCanvas.width = size;
+      particleCanvas.height = size;
+
+      clockCenterX = size / 2;
+      clockCenterY = size / 2;
+      clockRadius = size / 2 - 20;
+
+      drawClock();
+      drawCursors();
+    }
+
+    window.addEventListener('resize', resizeCanvases);
+    resizeCanvases();
 
     // Initialize cursor animations if not loaded from localStorage
     if (cursorAnimations.length === 0) {
       for (let i = 0; i < cursors; i++) {
-        cursorAnimations.push({ angle: Math.random() * Math.PI * 2 });
+        cursorAnimations.push({ angle: Math.random() * Math.PI * 2, lastClickTime: 0 });
       }
     }
 
@@ -197,7 +475,7 @@
         clockCtx.lineWidth = 2;
         clockCtx.stroke();
 
-        clockCtx.font = '20px Orbitron';
+        clockCtx.font = `${clockRadius / 10}px Orbitron`;
         clockCtx.fillStyle = '#0ff';
         clockCtx.textAlign = 'center';
         clockCtx.textBaseline = 'middle';
@@ -217,17 +495,17 @@
       const secondAngle = seconds * (Math.PI / 30) - Math.PI / 2;
 
       // Draw hour hand
-      drawHand(hourAngle, clockRadius * 0.5, 8, '#0ff');
+      drawHand(hourAngle, clockRadius * 0.5, clockRadius / 25, '#0ff');
 
       // Draw minute hand
-      drawHand(minuteAngle, clockRadius * 0.7, 6, '#0fa');
+      drawHand(minuteAngle, clockRadius * 0.7, clockRadius / 33, '#0fa');
 
       // Draw second hand
-      drawHand(secondAngle, clockRadius * 0.9, 4, '#f0f');
+      drawHand(secondAngle, clockRadius * 0.9, clockRadius / 50, '#f0f');
 
       // Draw center circle
       clockCtx.beginPath();
-      clockCtx.arc(clockCenterX, clockCenterY, 8, 0, 2 * Math.PI);
+      clockCtx.arc(clockCenterX, clockCenterY, clockRadius / 25, 0, 2 * Math.PI);
       clockCtx.fillStyle = '#0ff';
       clockCtx.fill();
 
@@ -235,7 +513,7 @@
       clickAnimations.forEach((anim, index) => {
         clockCtx.font = `${anim.size}px Orbitron`;
         clockCtx.fillStyle = `rgba(0, 255, 255, ${anim.opacity})`;
-        clockCtx.fillText(`+${anim.value}`, anim.x, anim.y);
+        clockCtx.fillText(`+${formatNumber(anim.value)}`, anim.x, anim.y);
 
         anim.y -= 2;
         anim.opacity -= 0.02;
@@ -267,8 +545,8 @@
       cursorCtx.clearRect(0, 0, cursorCanvas.width, cursorCanvas.height);
 
       cursorAnimations.forEach((cursor, index) => {
-        const x = cursorCanvas.width / 2 + Math.cos(cursor.angle) * 225;
-        const y = cursorCanvas.height / 2 + Math.sin(cursor.angle) * 225;
+        const x = cursorCanvas.width / 2 + Math.cos(cursor.angle) * (clockRadius + 25);
+        const y = cursorCanvas.height / 2 + Math.sin(cursor.angle) * (clockRadius + 25);
 
         cursorCtx.save();
         cursorCtx.translate(x, y);
@@ -287,16 +565,20 @@
         cursor.angle += 0.02;
 
         // Cursor click animation
-        if (Math.random() < 0.05) { // 5% chance each frame
+        const now = Date.now();
+        if (now - cursor.lastClickTime >= 1000 / cursorPower) {
+          createClickParticles(x, y);
+          clicks += cursorPower;
+          ticks += cursorPower;
+          cursor.lastClickTime = now;
+          
           clickAnimations.push({
-            x: x - 25,
-            y: y - 25,
+            x: x,
+            y: y,
             opacity: 1,
             size: 16,
-            value: 1
+            value: cursorPower
           });
-          clicks++;
-          ticks++;
         }
       });
 
@@ -304,14 +586,59 @@
       localStorage.setItem('cursorAnimations', JSON.stringify(cursorAnimations));
     }
 
+    function createClickParticles(x, y) {
+      const particleCount = 5;
+      for (let i = 0; i < particleCount; i++) {
+        particles.push({
+          x: x,
+          y: y,
+          size: Math.random() * 3 + 1,
+          speedX: (Math.random() - 0.5) * 3,
+          speedY: (Math.random() - 0.5) * 3,
+          color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+          life: 1
+        });
+      }
+    }
+
+    function updateParticles() {
+      particleCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const particle = particles[i];
+        particle.x += particle.speedX;
+        particle.y += particle.speedY;
+        particle.life -= 0.02;
+
+        if (particle.life <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        particleCtx.beginPath();
+        particleCtx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        particleCtx.fillStyle = particle.color;
+        particleCtx.globalAlpha = particle.life;
+        particleCtx.fill();
+      }
+    }
+
     function updateStats() {
-      document.getElementById('ticks').textContent = Math.floor(ticks);
-      document.getElementById('clicks').textContent = Math.floor(clicks);
-      document.getElementById('tickRate').textContent = tickRate;
-      document.getElementById('upgradeCost').textContent = upgradeCost;
-      document.getElementById('cursors').textContent = cursors;
-      document.getElementById('cursorCost').textContent = cursorCost;
-      document.getElementById('cps').textContent = cps.toFixed(1);
+      document.getElementById('ticks').textContent = formatNumber(ticks);
+      document.getElementById('clicks').textContent = formatNumber(clicks);
+      document.getElementById('tickRate').textContent = formatNumber(tickRate);
+      document.getElementById('upgradeCost').textContent = formatNumber(upgradeCost);
+      document.getElementById('cursors').textContent = formatNumber(cursors);
+      document.getElementById('cursorCost').textContent = formatNumber(cursorCost);
+      document.getElementById('cursorPower').textContent = formatNumber(cursorPower);
+      document.getElementById('cursorUpgradeCost').textContent = formatNumber(cursorUpgradeCost);
+      document.getElementById('autoClickers').textContent = formatNumber(autoClickers);
+      document.getElementById('autoClickerCost').textContent = formatNumber(autoClickerCost);
+      document.getElementById('timeDilators').textContent = formatNumber(timeDilators);
+      document.getElementById('timeDilatorCost').textContent = formatNumber(timeDilatorCost);
+      document.getElementById('timeWarps').textContent = formatNumber(timeWarps);
+      document.getElementById('timeWarpCost').textContent = formatNumber(timeWarpCost);
+      document.getElementById('cps').textContent = formatNumber(cps);
 
       localStorage.setItem('ticks', ticks);
       localStorage.setItem('clicks', clicks);
@@ -319,12 +646,67 @@
       localStorage.setItem('upgradeCost', upgradeCost);
       localStorage.setItem('cursors', cursors);
       localStorage.setItem('cursorCost', cursorCost);
+      localStorage.setItem('cursorPower', cursorPower);
+      localStorage.setItem('cursorUpgradeCost', cursorUpgradeCost);
+      localStorage.setItem('autoClickers', autoClickers);
+      localStorage.setItem('autoClickerCost', autoClickerCost);
+      localStorage.setItem('timeDilators', timeDilators);
+      localStorage.setItem('timeDilatorCost', timeDilatorCost);
+      localStorage.setItem('timeWarps', timeWarps);
+      localStorage.setItem('timeWarpCost', timeWarpCost);
+
+      checkAchievements();
     }
 
     function incrementTicks() {
-      ticks += tickRate;
-      clicks += cps / 10; // Divide by 10 because this function runs 10 times per second
+      ticks += tickRate * (1 + timeDilators * 0.1);
+      clicks += autoClickers;
       updateStats();
+    }
+
+    function checkAchievements() {
+      achievements.forEach(achievement => {
+        if (!achievement.achieved && achievement.condition()) {
+          achievement.achieved = true;
+          showAchievementPopup(achievement.name);
+          localStorage.setItem('achievements', JSON.stringify(achievements));
+        }
+      });
+    }
+
+    function showAchievementPopup(achievementName) {
+      const popup = document.getElementById('achievementPopup');
+      document.getElementById('achievementName').textContent = achievementName;
+      popup.classList.add('show');
+      setTimeout(() => {
+        popup.classList.remove('show');
+      }, 3000);
+    }
+
+    function updateAchievementsList() {
+      const achievementsList = document.getElementById('achievementsList');
+      achievementsList.innerHTML = '';
+      achievements.forEach(achievement => {
+        const achievementElement = document.createElement('div');
+        achievementElement.textContent = `${achievement.name}: ${achievement.description}`;
+        if (achievement.achieved) {
+          achievementElement.style.color = '#0f0';
+        } else {
+          achievementElement.style.color = '#888';
+        }
+        achievementsList.appendChild(achievementElement);
+      });
+    }
+
+    function updateLeaderboard() {
+      const leaderboardList = document.getElementById('leaderboardList');
+      leaderboardList.innerHTML = '';
+      leaderboard.sort((a, b) => b.score - a.score);
+      leaderboard.slice(0, 10).forEach((entry, index) => {
+        const leaderboardEntry = document.createElement('div');
+        leaderboardEntry.textContent = `${index + 1}. ${entry.name}: ${formatNumber(entry.score)} clicks`;
+        leaderboardList.appendChild(leaderboardEntry);
+      });
     }
 
     clockCanvas.addEventListener('click', (event) => {
@@ -333,7 +715,8 @@
       const y = event.clientY - rect.top;
 
       clicks++;
-      ticks += tickRate;
+      ticks += tickRate * (1 + timeDilators * 0.1);
+      createClickParticles(x, y);
       updateStats();
 
       clickAnimations.push({
@@ -343,12 +726,23 @@
         size: 24,
         value: tickRate
       });
+
+      if (document.getElementById('soundEffect').checked) {
+        clickSound.currentTime = 0;
+        clickSound.play();
+      }
     });
 
     document.getElementById('clickButton').addEventListener('click', () => {
       clicks++;
-      ticks += tickRate;
+      ticks += tickRate * (1 + timeDilators * 0.1);
+      createClickParticles(clockCenterX, clockCenterY);
       updateStats();
+
+      if (document.getElementById('soundEffect').checked) {
+        clickSound.currentTime = 0;
+        clickSound.play();
+      }
     });
 
     document.getElementById('upgradeButton').addEventListener('click', () => {
@@ -364,28 +758,179 @@
       if (clicks >= cursorCost) {
         clicks -= cursorCost;
         cursors++;
-        cps = cursors;
+        cursorAnimations.push({ angle: Math.random() * Math.PI * 2, lastClickTime: 0 });
         cursorCost = Math.floor(cursorCost * 1.2);
-        cursorAnimations.push({ angle: Math.random() * Math.PI * 2 });
+        cps = cursors * cursorPower + autoClickers;
         updateStats();
       }
     });
 
-    setInterval(incrementTicks, 100); // Run 10 times per second for smoother updates
+    document.getElementById('upgradeCursorButton').addEventListener('click', () => {
+      if (clicks >= cursorUpgradeCost) {
+        clicks -= cursorUpgradeCost;
+        cursorPower++;
+        cursorUpgradeCost = Math.floor(cursorUpgradeCost * 1.5);
+        cps = cursors * cursorPower + autoClickers;
+        updateStats();
+      }
+    });
+
+    document.getElementById('buyAutoClickerButton').addEventListener('click', () => {
+      if (clicks >= autoClickerCost) {
+        clicks -= autoClickerCost;
+        autoClickers++;
+        autoClickerCost = Math.floor(autoClickerCost * 1.3);
+        cps = cursors * cursorPower + autoClickers;
+        updateStats();
+      }
+    });
+
+    document.getElementById('buyTimeDilatorButton').addEventListener('click', () => {
+      if (clicks >= timeDilatorCost) {
+        clicks -= timeDilatorCost;
+        timeDilators++;
+        timeDilatorCost = Math.floor(timeDilatorCost * 1.4);
+        updateStats();
+      }
+    });
+
+    document.getElementById('buyTimeWarpButton').addEventListener('click', () => {
+      if (clicks >= timeWarpCost) {
+        clicks -= timeWarpCost;
+        timeWarps++;
+        timeWarpCost = Math.floor(timeWarpCost * 1.6);
+        ticks += 3600 * tickRate * (1 + timeDilators * 0.1); // Add 1 hour worth of ticks
+        updateStats();
+      }
+    });
+
+    document.getElementById('showAchievementsButton').addEventListener('click', () => {
+      updateAchievementsList();
+      document.getElementById('achievementsModal').style.display = 'block';
+    });
+
+    document.getElementById('closeAchievements').addEventListener('click', () => {
+      document.getElementById('achievementsModal').style.display = 'none';
+    });
+
+    document.getElementById('showLeaderboardButton').addEventListener('click', () => {
+      updateLeaderboard();
+      document.getElementById('leaderboardModal').style.display = 'block';
+    });
+
+    document.getElementById('closeLeaderboard').addEventListener('click', () => {
+      document.getElementById('leaderboardModal').style.display = 'none';
+    });
+
+    document.getElementById('submitScore').addEventListener('click', () => {
+      const playerName = document.getElementById('playerName').value.trim();
+      if (playerName) {
+        leaderboard.push({ name: playerName, score: clicks });
+        localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+        updateLeaderboard();
+        document.getElementById('playerName').value = '';
+      }
+    });
+
+    document.getElementById('settingsGear').addEventListener('click', () => {
+      document.getElementById('settingsModal').style.display = 'block';
+    });
+
+    document.getElementById('closeSettings').addEventListener('click', () => {
+      document.getElementById('settingsModal').style.display = 'none';
+    });
+
+    document.getElementById('resetGameButton').addEventListener('click', () => {
+      if (confirm('Are you sure you want to reset the game? This action cannot be undone.')) {
+        localStorage.clear();
+        location.reload();
+      }
+    });
+
+    document.getElementById('showMultiplayerButton').addEventListener('click', () => {
+      document.getElementById('multiplayerModal').style.display = 'block';
+    });
+
+    document.getElementById('closeMultiplayer').addEventListener('click', () => {
+      document.getElementById('multiplayerModal').style.display = 'none';
+    });
+
+    document.getElementById('registerButton').addEventListener('click', () => {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      if (username && password) {
+        // Here you would typically send a request to your server to register the user
+        console.log(`Registering user: ${username}`);
+        document.getElementById('multiplayerContent').style.display = 'none';
+        document.getElementById('serverSelection').style.display = 'block';
+      }
+    });
+
+    document.getElementById('loginButton').addEventListener('click', () => {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      if (username && password) {
+        // Here you would typically send a request to your server to authenticate the user
+        console.log(`Logging in user: ${username}`);
+        document.getElementById('multiplayerContent').style.display = 'none';
+        document.getElementById('serverSelection').style.display = 'block';
+      }
+    });
+
+    document.getElementById('joinServerButton').addEventListener('click', () => {
+      const selectedServer = document.getElementById('serverList').value;
+      console.log(`Joining server: ${selectedServer}`);
+      // Here you would typically connect to the selected server
+      document.getElementById('multiplayerModal').style.display = 'none';
+    });
+
+    document.getElementById('bgMusic').addEventListener('change', (event) => {
+      if (event.target.checked) {
+        bgMusic.play();
+      } else {
+        bgMusic.pause();
+      }
+    });
+
+    setInterval(incrementTicks, 1000); // Run 10 times per second for smoother updates
     setInterval(() => {
       drawClock();
       drawCursors();
+      updateParticles();
     }, 1000 / 60); // 60 FPS
 
     drawClock();
     drawCursors();
     updateStats();
+    updateAchievementsList();
+    updateLeaderboard();
 
     // Add neon glow animation to buttons
     const buttons = document.querySelectorAll('.neon-button');
     buttons.forEach(button => {
       button.style.animation = 'neon-glow 1.5s ease-in-out infinite alternate';
     });
+
+    // Load achievements from localStorage
+    const savedAchievements = JSON.parse(localStorage.getItem('achievements'));
+    if (savedAchievements) {
+      achievements.forEach((achievement, index) => {
+        achievement.achieved = savedAchievements[index].achieved;
+      });
+    }
+
+    // Auto-save game state every 30 seconds
+    setInterval(() => {
+      if (document.getElementById('autoSave').checked) {
+        updateStats();
+        localStorage.setItem('achievements', JSON.stringify(achievements));
+      }
+    }, 30000);
+
+    // Start background music if enabled
+    if (document.getElementById('bgMusic').checked) {
+      bgMusic.play();
+    }
   </script>
 </body>
 </html>
