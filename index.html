@@ -109,11 +109,12 @@
     </div>
   </div>
 
-  <style>
+    <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
 
     * {
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
@@ -123,19 +124,17 @@
       background-color: #000;
       color: #0ff;
       display: flex;
-      justify-content: center;
-      align-items: center;
+      flex-direction: column;
       min-height: 100vh;
-      overflow: hidden;
+      overflow-x: hidden;
     }
 
     .container {
       display: flex;
       flex-direction: column;
       width: 100%;
-      max-width: 1200px;
+      max-width: 100%;
       background: rgba(0, 0, 0, 0.7);
-      border-radius: 20px;
       box-shadow: 0 0 20px #0ff, 0 0 40px #0ff, 0 0 60px #0ff;
     }
 
@@ -152,15 +151,9 @@
       box-shadow: inset 0 0 20px #0ff;
     }
 
-    .sidebar-content {
-      max-height: 400px;
-      overflow-y: auto;
-      width: 100%;
-    }
-
     .sidebar-title {
-      font-size: 1.5rem;
-      margin-bottom: 1rem;
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
       text-shadow: 0 0 10px #0ff;
     }
 
@@ -169,18 +162,23 @@
       text-align: center;
     }
 
+    .title {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      text-shadow: 0 0 10px #0ff, 0 0 20px #0ff, 0 0 30px #0ff;
+    }
+
     .game-area {
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 1rem;
-      border-width: 0;
     }
 
     .clock-container {
       position: relative;
       width: 100%;
-      max-width: 450px;
+      max-width: 300px;
       aspect-ratio: 1 / 1;
     }
 
@@ -190,24 +188,25 @@
       left: 0;
       width: 100%;
       height: 100%;
+      touch-action: manipulation;
     }
 
     #clockCanvas {
       border: 2px solid #0ff;
-      border-width: 0;
-      border-radius: 100%;
+      border-radius: 50%;
       box-shadow: 0 0 20px #0ff, inset 0 0 20px #0ff;
-      cursor: pointer;
     }
 
     #stats {
-      font-size: 1rem;
+      font-size: 0.9rem;
       text-align: left;
+      width: 100%;
+      max-width: 300px;
     }
 
     .neon-button {
       font-family: 'Orbitron', sans-serif;
-      font-size: 1rem;
+      font-size: 0.9rem;
       padding: 0.8rem 1.5rem;
       cursor: pointer;
       background-color: transparent;
@@ -218,7 +217,8 @@
       text-shadow: 0 0 5px #0ff;
       box-shadow: 0 0 10px #0ff, inset 0 0 10px #0ff;
       width: 100%;
-      margin-bottom: 0.5rem;
+      max-width: 300px;
+      touch-action: manipulation;
     }
 
     .neon-button:hover, .neon-button:active {
@@ -254,6 +254,7 @@
       width: 100%;
       height: 100%;
       background-color: rgba(0,0,0,0.8);
+      overflow-y: auto;
     }
 
     .modal-content {
@@ -262,7 +263,7 @@
       padding: 20px;
       border: 2px solid #0ff;
       border-radius: 10px;
-      width: 80%;
+      width: 90%;
       max-width: 600px;
       box-shadow: 0 0 20px #0ff;
     }
@@ -323,7 +324,7 @@
 
       .sidebar {
         width: 250px;
-        height: 100%;
+        height: 100vh;
         border-right: 2px solid #0ff;
         border-bottom: none;
       }
@@ -333,7 +334,7 @@
       }
 
       .title {
-        font-size: 3rem;
+        font-size: 2rem;
       }
 
       .game-area {
@@ -342,7 +343,7 @@
       }
 
       #stats {
-        font-size: 1.2rem;
+        font-size: 1rem;
       }
     }
   </style>
